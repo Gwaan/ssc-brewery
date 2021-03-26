@@ -1,8 +1,10 @@
 package guru.sfg.brewery.config;
 
+import guru.sfg.brewery.security.JpaUserDetailsService;
 import guru.sfg.brewery.security.RestHeaderAuthFilter;
 import guru.sfg.brewery.security.RestUrlAuthFilter;
 import guru.sfg.brewery.security.SfgPasswordEncoderFactories;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -44,14 +46,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.addFilterBefore(restUrlAuthFilter(authenticationManager()), UsernamePasswordAuthenticationFilter.class);
 
         http.authorizeRequests(authorize -> {
-            authorize.antMatchers("/", "/webjars/**", "/login", "/resources/**")
-                    .permitAll()
-                    .antMatchers("/beers/find", "/beers*")
-                    .permitAll()
-                    .antMatchers(HttpMethod.GET, "/api/v1/beer/**")
-                    .permitAll()
-                    .mvcMatchers(HttpMethod.GET, "/api/v1/beerUpc/{upc}")
-                    .permitAll();
+            authorize
+                    .antMatchers("/h2-console/**").permitAll() // do not use in production
+                    .antMatchers("/", "/webjars/**", "/login", "/resources/**").permitAll()
+                    .antMatchers("/beers/find", "/beers*").permitAll()
+                    .antMatchers(HttpMethod.GET, "/api/v1/beer/**").permitAll()
+                    .mvcMatchers(HttpMethod.GET, "/api/v1/beerUpc/{upc}").permitAll();
         })
                 .authorizeRequests()
                 .anyRequest()
@@ -60,6 +60,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .formLogin()
                 .and()
                 .httpBasic();
+
+        //h2 console config
+        http.headers().frameOptions().sameOrigin();
     }
 
     @Bean
@@ -67,13 +70,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return SfgPasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
-    @Override
+
+    /*@Override
     protected void configure(
             AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication()
+        // auth.userDetailsService(this.jpaUserDetailsService).passwordEncoder(passwordEncoder());
+
+        *//*auth.inMemoryAuthentication()
                 .withUser("spring")
                 .password("{bcrypt}$2a$10$7RkY26kT"
-                                  + ".tL6yw631au1he772TmEeYU1VBW9GxE1WI8fPNQo.KaT2")
+                        + ".tL6yw631au1he772TmEeYU1VBW9GxE1WI8fPNQo.KaT2")
                 .roles("ADMIN")
                 .and()
                 .withUser("user")
@@ -84,9 +90,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .withUser("scott")
                 .password(
                         "{bcrypt10}$2a$10$RpPluvSRGOADLOvqkZ71ce/qcAys2RzroVWnhmxcBBQht5NrGp9D.")
-                .roles("CUSTOMER");
+                .roles("CUSTOMER");*//*
 
-    }
+    }*/
 
     /* @Override
     @Bean
